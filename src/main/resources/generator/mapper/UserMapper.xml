@@ -17,6 +17,7 @@
             <result property="createTime" column="createTime" />
             <result property="updateTime" column="updateTime" />
             <result property="isDelete" column="isDelete" />
+
     </resultMap>
 
     <sql id="Base_Column_List">
