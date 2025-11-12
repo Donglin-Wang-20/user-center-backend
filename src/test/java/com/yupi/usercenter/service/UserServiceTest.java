@@ -34,4 +34,8 @@ public class UserServiceTest {
         System.out.println(user.getId());
         Assertions.assertTrue(result);
     }
+
+    @Test
+    void userRegister() {
+    }
 }

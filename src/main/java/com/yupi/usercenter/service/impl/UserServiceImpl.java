@@ -6,6 +6,7 @@ import com.yupi.usercenter.model.domain.User;
 import com.yupi.usercenter.service.UserService;
 import com.yupi.usercenter.mapper.UserMapper;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -16,11 +17,17 @@ import org.springframework.util.DigestUtils;
  * @author WangDonglin
  */
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
 
     @Resource
     private UserMapper userMapper;
+
+    /**
+     * 盐值，混淆密码
+     */
+    private static final String SALT = "WangDonglin";
 
     /**
      * 用户注册
@@ -66,10 +73,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 2. 对密码进行md5加密
-        final String SALT = "WangDonglin";
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         // 3. 插入数据
-        User  user = new User();
+        User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
         boolean saveResult = this.save(user);
@@ -78,6 +84,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         return 0;
+    }
+
+    @Override
+    public User doLogin(String userAccount, String userPassword) {
+
+        // 1. 校验非空
+        if (StringUtils.isAllBlank(userAccount, userPassword)) {
+            return null;
+        }
+        if (userAccount.length() < 4) {
+            return null;
+        }
+        if (userPassword.length() < 8) {
+            return null;
+        }
+        // 账户不能包含特殊字符
+        String validPattern = "^[a-zA-Z0-9_]+$";
+        // matches() 是 Java String 类的方法，用于判断整个字符串是否完全匹配给定的正则表达式。
+        if (!userAccount.matches(validPattern)) {
+            return null;
+        }
+
+        // 2. 对密码进行md5加密
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+
+        // 查询用户是否存在
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount);
+        queryWrapper.eq("userPassword", encryptPassword);
+        User user = userMapper.selectOne(queryWrapper);
+        if (user == null) {
+            log.info("user login failed, userAccount cannot match userPassword");
+            return null;
+        }
+        return user;
     }
 }
 
