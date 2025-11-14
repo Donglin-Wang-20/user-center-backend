@@ -46,6 +46,7 @@ public class UserController {
         if (StringUtils.isAllBlank(userAccount, userPassword, checkPassword)) {
             return null;
         }
+        
 
         // 调用service层注册账号
         return userService.userRegister(userAccount, userPassword, checkPassword);
