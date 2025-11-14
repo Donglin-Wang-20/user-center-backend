@@ -66,7 +66,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 密码和校验密码相同
-        if (userPassword.equals(checkPassword)) {
+        if (!userPassword.equals(checkPassword)) {
             return -1;
         }
 
@@ -90,11 +90,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return -1;
         }
 
-        return 0;
+        return user.getId();
     }
 
     @Override
-    public User doLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
 
         // 1. 校验非空
         if (StringUtils.isAllBlank(userAccount, userPassword)) {
