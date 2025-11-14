@@ -47,7 +47,6 @@ public class UserController {
             return null;
         }
         
-
         // 调用service层注册账号
         return userService.userRegister(userAccount, userPassword, checkPassword);
     }
