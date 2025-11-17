@@ -1,4 +1,4 @@
-package com.yupi.usercenter.model.domain;
+package generator.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
 
@@ -6,7 +6,7 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- *
+ * 
  * @TableName user
  */
 @TableName(value ="user")
@@ -19,7 +19,7 @@ public class User {
     private Long id;
 
     /**
-     *
+     * 
      */
     private String username;
 
@@ -59,11 +59,6 @@ public class User {
     private Integer userStatus;
 
     /**
-     *  状态 0 - 普通用户 1 - 管理员
-     */
-    private Integer userRole;
-
-    /**
      * 创建时间
      */
     private Date createTime;
@@ -78,4 +73,9 @@ public class User {
      */
     @TableLogic
     private Integer isDelete;
+
+    /**
+     * 0 - 普通用户 1 - 管理员
+     */
+    private Integer userRole;
 }

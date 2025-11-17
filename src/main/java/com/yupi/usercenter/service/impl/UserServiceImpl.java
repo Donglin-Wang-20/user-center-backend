@@ -1,4 +1,5 @@
 package com.yupi.usercenter.service.impl;
+
 import java.util.Date;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -12,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import static com.yupi.usercenter.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户服务实现类
@@ -30,11 +33,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 盐值，混淆密码
      */
     private static final String SALT = "WangDonglin";
-
-    /**
-     * 用户登录态键
-     */
-    private static final String USER_LOGIN_STATE = "userLoginState";
 
     /**
      * 用户注册
@@ -127,6 +125,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return null;
         }
         // 3. 用户脱敏
+        User safetyUser = getSafetyUser(user);
+        // 4. 记录用户的登录态
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        return safetyUser;
+    }
+
+    /**
+     * 用户脱敏
+     *
+     * @param user
+     * @return
+     */
+    @Override
+    public User getSafetyUser(User user) {
         User safetyUser = new User();
         safetyUser.setId(user.getId());
         safetyUser.setUsername(user.getUsername());
@@ -135,10 +147,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setGendere(user.getGendere());
         safetyUser.setPhone(user.getPhone());
         safetyUser.setEmail(user.getEmail());
+        safetyUser.setUserRole(user.getUserRole());
         safetyUser.setUserStatus(user.getUserStatus());
         safetyUser.setCreateTime(new Date());
-        // 4. 记录用户的登录态
-        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
         return safetyUser;
     }
 }
