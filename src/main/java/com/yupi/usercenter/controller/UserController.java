@@ -1,6 +1,10 @@
 package com.yupi.usercenter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.yupi.usercenter.common.BaseResponse;
+import com.yupi.usercenter.common.ErrorCode;
+import com.yupi.usercenter.common.ResultUtils;
+import com.yupi.usercenter.exception.BusinessException;
 import com.yupi.usercenter.model.domain.User;
 import com.yupi.usercenter.model.domain.request.UserLoginRequest;
 import com.yupi.usercenter.model.domain.request.UserRegisterRequest;
@@ -37,24 +41,29 @@ public class UserController {
      * @return 用户id
      */
     @PostMapping("/register")
-    public Long userResister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long > userResister(@RequestBody UserRegisterRequest userRegisterRequest) {
 
         // 判断用户注册对象数据不为空
         if (userRegisterRequest == null) {
-            return null;
+            // return ResultUtils.error(ErrorCode.NULL_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
         // 判断每个参数不为空
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAllBlank(userAccount, userPassword, checkPassword)) {
+        String planetCode = userRegisterRequest.getPlanetCode();
+        if (StringUtils.isAllBlank(userAccount, userPassword, checkPassword, planetCode)) {
             return null;
         }
 
         // 调用service层注册账号
-        return userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
+        // return new BaseResponse<Long>(0, result, "ok");
+        return ResultUtils.success(result);
     }
+
 
     /**
      * 用户登录
@@ -63,7 +72,7 @@ public class UserController {
      * @return 脱敏后的用户信息
      */
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
 
         // 判断用户注册对象数据不为空
         if (userLoginRequest == null) {
@@ -78,7 +87,38 @@ public class UserController {
         }
 
         // 调用service层注册账号
-        return userService.userLogin(userAccount, userPassword, request);
+        User user = userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(user);
+    }
+
+    @PostMapping("/logout")
+    public BaseResponse<Integer> userLogout(HttpServletRequest request) {
+        // 判断用户注册对象数据不为空
+        if (request == null) {
+            return null;
+        }
+        // 调用service层注册账号
+        int i = userService.userLogout(request);
+        return ResultUtils.success(i);
+    }
+
+    /**
+     * 获取当前登录用户信息
+     *
+     * @param request 网络请求
+     * @return 脱敏后的当前登录用户信息
+     */
+    @GetMapping("/current")
+    public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null) {
+            return null;
+        }
+        Long userId = currentUser.getId();
+        User user = userService.getById(userId);
+        User safetyUser = userService.getSafetyUser(user);
+        return ResultUtils.success(safetyUser);
     }
 
     /**
@@ -89,18 +129,19 @@ public class UserController {
      * @return 查询出来的用户列表
      */
     @GetMapping("/search")
-    public List<User> searchUsers(String username, HttpServletRequest request) {
+    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         // 仅管理员可查询
-        if (extracted(request)) return new ArrayList<>();
+        if (extracted(request)) throw new BusinessException(ErrorCode.PARAMS_ERROR);
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)) {
             queryWrapper.like("username", username);
         }
         List<User> userList = userService.list(queryWrapper);
-        return userList.stream().map(user -> {
+        List<User> users = userList.stream().map(user -> {
             user.setUserPassword(null);
             return userService.getSafetyUser(user);
         }).collect(Collectors.toList());
+        return ResultUtils.success(users);
     }
 
     /**
@@ -111,12 +152,13 @@ public class UserController {
      * @return 是否删除成功
      */
     @PostMapping("/delete")
-    public Boolean deleteUser(@RequestBody long id, HttpServletRequest request) {
-        if (!extracted(request)) return false;
+    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
+        if (!extracted(request)) return null;
         if (id < 0) {
-            return false;
+            return null;
         }
-        return userService.removeById(id);
+        boolean b = userService.removeById(id);
+        return ResultUtils.success(b);
     }
 
     /**

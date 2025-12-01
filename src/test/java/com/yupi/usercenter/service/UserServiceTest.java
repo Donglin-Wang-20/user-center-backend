@@ -26,7 +26,7 @@ public class UserServiceTest {
         user.setUsername("WangDonglin");
         user.setUserAccount("123");
         user.setAvatarUrl("https://ts1.tc.mm.bing.net/th/id/OIP-C.SWWmUtJk_k7PS8U6DyrxQQAAAA?w=211&h=211&c=8&rs=1&qlt=90&o=6&cb=ucfimg1&dpr=2&pid=3.1&rm=2&ucfimg=1");
-        user.setGendere(0);
+        user.setGender(0);
         user.setUserPassword("xxx");
         user.setPhone("123");
         user.setEmail("123");

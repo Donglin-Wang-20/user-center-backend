@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://8.136.36.133:3306?useSSL=false
+    username: wangdonglin_root
+    password: wangdonglin_root_123456789
+  # session 失效时间
+  session:
+    timeout: 86400
